@@ -11,16 +11,14 @@ import os
 if not os.path.exists("./log"):
     os.mkdir("./log")
 
-log_name = "./log/log"+datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + \
-    ".log"  # 日志文件命名 年,月,日,时,分
+log_name = "./log/log"+datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")+".log"
 log = logging.getLogger(__name__)
-formatter = logging.Formatter(  # 消息格式
+formatter = logging.Formatter(
     '%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
-file_handler = logging.FileHandler(log_name, encoding='UTF-8')  # 日志文件
+file_handler = logging.FileHandler(log_name)
 file_handler.setFormatter(formatter)
 file_handler.setLevel(logging.DEBUG)
 log.addHandler(file_handler)
-log.propagate = False  # 不再控制台输出
 
 
 class Key:
@@ -184,9 +182,7 @@ class Eliza:
         return None
 
     def respond(self, text):
-        log.debug("---respond(%s)---", text)
         if text.lower() in self.quits:
-            log.debug("Quit")
             return None
 
         text = re.sub(r'\s*\.+\s*', ' . ', text)

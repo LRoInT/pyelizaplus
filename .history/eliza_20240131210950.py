@@ -10,17 +10,15 @@ import os
 # 日志
 if not os.path.exists("./log"):
     os.mkdir("./log")
-
-log_name = "./log/log"+datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + \
-    ".log"  # 日志文件命名 年,月,日,时,分
+logging.basicConfig(level=logging.DEBUG)
+log_name = "./log/log"+datetime.datetime.now().strftime("%Y-%m-%d")+".log"
 log = logging.getLogger(__name__)
-formatter = logging.Formatter(  # 消息格式
+formatter = logging.Formatter(
     '%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
-file_handler = logging.FileHandler(log_name, encoding='UTF-8')  # 日志文件
+file_handler = logging.FileHandler(log_name)
 file_handler.setFormatter(formatter)
 file_handler.setLevel(logging.DEBUG)
 log.addHandler(file_handler)
-log.propagate = False  # 不再控制台输出
 
 
 class Key:
@@ -59,9 +57,9 @@ class Eliza:
                 tag, content = [part.strip() for part in line.split(':')]
                 if tag == 'initial':  # 开始语
                     self.initials.append(content)
-                elif tag == 'final':  # 结束语
+                elif tag == 'final':
                     self.finals.append(content)
-                elif tag == 'quit':  # 退出词
+                elif tag == 'quit':
                     self.quits.append(content)
                 elif tag == 'pre':  # 同义词
                     parts = content.split(' ')
@@ -146,15 +144,13 @@ class Eliza:
         return output
 
     def _sub(self, words, sub):
-        # 输入一个可迭代对象 words , 遍历 words
-        # 在 sub 中搜索键 word 完成转换, 如果没有表明不需要转换
         output = []
         for word in words:
-            word_lower = word.lower()  # 小写
+            word_lower = word.lower()
             if word_lower in sub:
-                output.extend(sub[word_lower])  # 匹配
+                output.extend(sub[word_lower])
             else:
-                output.append(word)  # 添加本身
+                output.append(word)
         return output
 
     def _match_key(self, words, key):
@@ -184,27 +180,23 @@ class Eliza:
         return None
 
     def respond(self, text):
-        log.debug("---respond(%s)---", text)
         if text.lower() in self.quits:
-            log.debug("Quit")
             return None
 
         text = re.sub(r'\s*\.+\s*', ' . ', text)
         text = re.sub(r'\s*,+\s*', ' , ', text)
         text = re.sub(r'\s*;+\s*', ' ; ', text)
-        log.debug('After punctuation cleanupv 有效词语: %s', text)
+        log.debug('After punctuation cleanup: %s', text)
 
-        words = [w for w in text.split(' ') if w]  # 将 text 转为 以单词为项的列表
-        log.debug('Input 输入: %s', words)
+        words = [w for w in text.split(' ') if w]
+        log.debug('Input: %s', words)
 
-        words = self._sub(words, self.pres)  # 将 words 内的单词转化为统一的单词
-        log.debug('After pre-substitution 统一用词: %s', words)
+        words = self._sub(words, self.pres)
+        log.debug('After pre-substitution: %s', words)
 
-        keys = [self.keys[w.lower()] for w in words if w.lower()
-                in self.keys]  # 在keys中匹配words中的单词
-        keys = sorted(keys, key=lambda k: -k.weight)  # 排序
-        log.debug('Sorted keys 被匹配的关键词: %s', [
-                  (k.word, k.weight) for k in keys])
+        keys = [self.keys[w.lower()] for w in words if w.lower() in self.keys]
+        keys = sorted(keys, key=lambda k: -k.weight)
+        log.debug('Sorted keys: %s', [(k.word, k.weight) for k in keys])
 
         output = None
 
@@ -252,5 +244,5 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig()
     main()

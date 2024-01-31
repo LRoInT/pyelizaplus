@@ -2,11 +2,23 @@ import logging
 import random
 import re
 from collections import namedtuple
+import datetime
+import os
 
 # Fix Python2/Python3 incompatibility
 
+# 日志
+if not os.path.exists("./log"):
+    os.mkdir("./log")
+
+log_name = "./log/log"+datetime.datetime.now().strftime("%Y-%m-%d")+".log"
 log = logging.getLogger(__name__)
-log.basicConfig(filename='log.txt', filemode="w")
+formatter = logging.Formatter(
+    '%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+file_handler = logging.FileHandler(log_name)
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.DEBUG)
+log.addHandler(file_handler)
 
 
 class Key:
@@ -43,13 +55,13 @@ class Eliza:
                 if not line.strip():
                     continue
                 tag, content = [part.strip() for part in line.split(':')]
-                if tag == 'initial': #开始语
+                if tag == 'initial':  # 开始语
                     self.initials.append(content)
                 elif tag == 'final':
                     self.finals.append(content)
-                elif tag == 'quit': #
+                elif tag == 'quit':
                     self.quits.append(content)
-                elif tag == 'pre': #同义词
+                elif tag == 'pre':  # 同义词
                     parts = content.split(' ')
                     self.pres[parts[0]] = parts[1:]
                 elif tag == 'post':
@@ -58,7 +70,7 @@ class Eliza:
                 elif tag == 'synon':
                     parts = content.split(' ')
                     self.synons[parts[0]] = parts
-                elif tag == 'key': #关键词
+                elif tag == 'key':  # 关键词
                     parts = content.split(' ')
                     word = parts[0]
                     weight = int(parts[1]) if len(parts) > 1 else 1
@@ -230,6 +242,7 @@ def main():
     eliza.load('doctor.txt')
     eliza.run()
 
+
 if __name__ == '__main__':
-    logging.basicConfig()
+    logging.basicConfig(level=logging.DEBUG)
     main()
