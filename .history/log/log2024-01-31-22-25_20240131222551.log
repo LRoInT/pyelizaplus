@@ -1,9 +1,0 @@
-2024-01-31 22:25:42,451 - eliza.py[line:191] - DEBUG: After punctuation cleanupv 有效词语: hello
-2024-01-31 22:25:42,452 - eliza.py[line:194] - DEBUG: Input 输入: ['hello']
-2024-01-31 22:25:42,453 - eliza.py[line:197] - DEBUG: After pre-substitution 统一用词: ['hello']
-2024-01-31 22:25:42,453 - eliza.py[line:202] - DEBUG: Sorted keys 被匹配的关键词: [('hello', 1)]
-2024-01-31 22:25:42,454 - eliza.py[line:164] - DEBUG: Decomp matched: ['*']
-2024-01-31 22:25:42,454 - eliza.py[line:165] - DEBUG: Decomp results: [['hello']]
-2024-01-31 22:25:42,455 - eliza.py[line:167] - DEBUG: Decomp results after posts: [['hello']]
-2024-01-31 22:25:42,456 - eliza.py[line:169] - DEBUG: Using reassembly: ['How', 'do', 'you', 'do.', '', 'Please', 'state', 'your', 'problem.']
-2024-01-31 22:25:42,459 - eliza.py[line:210] - DEBUG: Output from key: ['How', 'do', 'you', 'do.', 'Please', 'state', 'your', 'problem.']
