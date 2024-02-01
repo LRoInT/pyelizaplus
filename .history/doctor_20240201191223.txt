@@ -363,8 +363,8 @@ symbol: .
 symbol: ?
 symbol: !
 symbol: ;
-sym_ch_en: ， ,
-sym_ch_en: 。 .
-sym_ch_en: ？ ?
-sym_ch_en: ！ !
-sym_ch_en: ； ;
+sym_ch_en: ，  ,
+sym_ch_en: 。  .
+sym_ch_en: ？  ?
+sym_ch_en: ！  !
+sym_ch_en: ；  ;

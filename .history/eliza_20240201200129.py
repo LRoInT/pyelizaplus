@@ -197,7 +197,7 @@ class Eliza:
             output = self._reassemble(reasmb, results)
             if decomp.save:
                 self.memory.append(output)
-                log.debug('Saved to memory 上下文信息添加: %s', output)
+                log.debug('Saved to memory: %s', output)
                 continue
             return output
         return None
@@ -237,8 +237,8 @@ class Eliza:
         for key in keys:
             output = self._match_key(words, key)
             if output:
-                log.debug('Output from key 从关键词获取输出: %s', output)
-                break # 避免多个关键词出现导致输出混乱
+                log.debug('Output from key: %s', output)
+                break
         if not output:
             if self.memory:
                 index = random.randrange(len(self.memory))

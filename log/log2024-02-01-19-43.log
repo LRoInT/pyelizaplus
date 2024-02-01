@@ -1,0 +1,16 @@
+2024-02-01 19:45:44,423 - eliza.py[line:214] - DEBUG: ---respond(yes)---
+2024-02-01 19:45:47,190 - eliza.py[line:221] - DEBUG: After punctuation cleanupv 有效词语: "yes"
+2024-02-01 19:45:47,193 - eliza.py[line:224] - DEBUG: Input 输入: ['yes']
+2024-02-01 19:45:47,196 - eliza.py[line:227] - DEBUG: After pre-substitution 统一用词: ['yes']
+2024-02-01 19:45:47,203 - eliza.py[line:232] - DEBUG: Sorted keys 被匹配的关键词: [('yes', 1)]
+2024-02-01 19:55:48,342 - eliza.py[line:185] - DEBUG: Decomp matched: ['*']
+2024-02-01 19:55:56,271 - eliza.py[line:186] - DEBUG: Decomp results: [['yes']]
+2024-02-01 19:57:45,866 - eliza.py[line:188] - DEBUG: Decomp results after posts: [['yes']]
+2024-02-01 20:01:34,332 - eliza.py[line:190] - DEBUG: Using reassembly: ['You', 'seem', 'to', 'be', 'quite', 'positive.']
+2024-02-01 20:05:24,067 - eliza.py[line:240] - DEBUG: Output from key: ['You', 'seem', 'to', 'be', 'quite', 'positive.']
+2024-02-01 20:09:25,242 - eliza.py[line:214] - DEBUG: ---respond(Say something.)---
+2024-02-01 20:09:25,279 - eliza.py[line:221] - DEBUG: After punctuation cleanupv 有效词语: "Say something . "
+2024-02-01 20:09:25,321 - eliza.py[line:224] - DEBUG: Input 输入: ['Say', 'something', '.']
+2024-02-01 20:09:25,329 - eliza.py[line:227] - DEBUG: After pre-substitution 统一用词: ['Say', 'something', '.']
+2024-02-01 20:09:25,346 - eliza.py[line:232] - DEBUG: Sorted keys 被匹配的关键词: []
+2024-02-01 20:09:27,425 - eliza.py[line:249] - DEBUG: Output from xnone: ["I'm", 'not', 'sure', 'I', 'understand', 'you', 'fully.']

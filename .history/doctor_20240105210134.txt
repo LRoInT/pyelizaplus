@@ -358,13 +358,3 @@ key: like 10
   decomp: * @be * like *
     reasmb: goto alike
    
-symbol: ,
-symbol: .
-symbol: ?
-symbol: !
-symbol: ;
-sym_ch_en: ， ,
-sym_ch_en: 。 .
-sym_ch_en: ？ ?
-sym_ch_en: ！ !
-sym_ch_en: ； ;
