@@ -20,7 +20,7 @@ file_handler = logging.FileHandler(log_name, encoding='UTF-8')  # 日志文件
 file_handler.setFormatter(formatter)
 file_handler.setLevel(logging.DEBUG)
 log.addHandler(file_handler)
-# log.propagate = False  # 不再控制台输出
+# log.propagate = False  # 不在控制台输出
 
 
 class Key:
@@ -70,6 +70,8 @@ class Eliza:
             for line in file:
                 if not line.strip():
                     continue
+                if "#" in line: # 注释
+                    line=line[:line.index("#")]
                 tag, content = [part.strip() for part in line.split(':')]
                 if tag == 'initial':  # 开始语
                     self.initials.append(content)
@@ -80,7 +82,7 @@ class Eliza:
                 elif tag == 'pre':  # 同义词
                     parts = content.split(' ')
                     self.pres[parts[0]] = parts[1:]
-                elif tag == 'post':
+                elif tag == 'post': # 人称转换
                     parts = content.split(' ')
                     self.posts[parts[0]] = parts[1:]
                 elif tag == 'synon':
@@ -152,13 +154,13 @@ class Eliza:
             if not reword:
                 continue
             if reword[0] == '(' and reword[-1] == ')':
-                index = int(reword[1:-1])
-                if index < 1 or index > len(results):
+                index = int(reword[1:-1]) # 括号内内容
+                if index < 1 or index > len(results): # 无效符号
                     raise ValueError("Invalid result index {}".format(index))
-                insert = results[index - 1]
+                insert = results[index - 1] # 从列表取关键语句
                 for punct in [',', '.', ';']:
                     if punct in insert:
-                        insert = insert[:insert.index(punct)]
+                        insert = insert[:insert.index(punct)] # 提取符号前的第一段内容
                 output.extend(insert)
             else:
                 output.append(reword)
@@ -177,17 +179,18 @@ class Eliza:
         return output
 
     def _match_key(self, words, key):
+        # words: 输入, key: 关键词规则
         for decomp in key.decomps:
-            results = self._match_decomp(decomp.parts, words)
+            results = self._match_decomp(decomp.parts, words) #提取信息
             if results is None:
                 log.debug('Decomp did not match 无返回: %s', decomp.parts)
                 continue
-            log.debug('Decomp matched 被匹配的返回: %s', decomp.parts)
-            log.debug('Decomp results 匹配结果: %s', results)
-            results = [self._sub(words, self.posts) for words in results]
-            log.debug('Decomp results after posts 转换后结果: %s', results)
+            log.info('Decomp matched 被匹配的返回: %s', decomp.parts)
+            log.info('Decomp results 匹配结果: %s', results)
+            results = [self._sub(words, self.posts) for words in results] #人称转换
+            log.info('Decomp results after posts 转换后结果: %s', results)
             reasmb = self._next_reasmb(decomp)
-            log.debug('Using reassembly 回复语句: %s', reasmb)
+            log.info('Using reassembly 回复语句: %s', reasmb)
             if reasmb[0] == 'goto':
                 goto_key = reasmb[1]
                 if not goto_key in self.keys:
@@ -196,8 +199,8 @@ class Eliza:
                 return self._match_key(words, self.keys[goto_key])
             output = self._reassemble(reasmb, results)
             if decomp.save:
-                self.memory.append(output)
-                log.debug('Saved to memory 上下文信息添加: %s', output)
+                self.memory.append(output) # 保存到记忆
+                log.info('Saved to memory 记忆信息添加: %s', output)
                 continue
             return output
         return None
@@ -211,17 +214,17 @@ class Eliza:
         return text
 
     def respond(self, text):
-        log.debug("---respond(%s)---", text)
+        log.info("---respond:%s---", text)
         if text.lower() in self.quits:
-            log.debug("Quit")
+            log.debug("---Quit---")
             return None
 
-        # 将句号,逗号,分号替换为原符号在左右添加空格
+        # 将标点符号替换为原符号在左右添加空格
         text = self.sym_replace(text)
         log.debug('After punctuation cleanupv 有效词语: "%s"', text)
 
         words = [w for w in text.split(' ') if w]  # 将 text 转为 以单词为项的列表
-        log.debug('Input 输入: %s', words)
+        log.info('Input 输入: %s', words)
 
         words = self._sub(words, self.pres)  # 将 words 内的单词转化为统一的单词
         log.debug('After pre-substitution 统一用词: %s', words)
@@ -229,7 +232,7 @@ class Eliza:
         keys = [self.keys[w.lower()] for w in words if w.lower()
                 in self.keys]  # 在keys中匹配words中的单词
         keys = sorted(keys, key=lambda k: -k.weight)  # 排序
-        log.debug('Sorted keys 被匹配的关键词: %s', [
+        log.info('Sorted keys 被匹配的关键词: %s', [
                   (k.word, k.weight) for k in keys])
 
         output = None
@@ -240,16 +243,17 @@ class Eliza:
                 log.debug('Output from key 从关键词获取输出: %s', output)
                 break # 避免多个关键词出现导致输出混乱
         if not output:
-            if self.memory:
-                index = random.randrange(len(self.memory))
+            if self.memory: # 当记忆不为空时
+                index = random.randrange(len(self.memory)) # 从记忆中随机选择一条输出并删除
                 output = self.memory.pop(index)
                 log.debug('Output from memory: %s', output)
             else:
                 output = self._next_reasmb(self.keys['xnone'].decomps[0])
                 log.debug('Output from xnone: %s', output)
 
-        return " ".join(output)
-
+        return " ".join(output) #文本处理
+    
+    # 开始语与结束语的随机输出
     def initial(self):
         return random.choice(self.initials)
 
