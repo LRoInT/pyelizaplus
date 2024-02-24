@@ -1,13 +1,8 @@
-def w1(func):
-    def wrapper(*args, **kwargs):
-        print(func.__name__)
-        print(args)
-        print(kwargs)
-        print()
-    return wrapper
-@w1
-def t1(a,b):
-    c=a+b
-    print("--------------")
-
-t1(10,5)
+import json
+j=json.load(open('doctor.json',encoding="utf-8"))
+for k in j["keys"]:
+    k1=k
+    k=j["keys"][k]
+    for d in k["decomps"]:
+        if d["parts"][0].startswith("*"):
+            print(k1)

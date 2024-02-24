@@ -1,3 +1,4 @@
+import json
 import logging
 import random
 import re
@@ -26,11 +27,12 @@ log.addHandler(file_handler)
 def output_write(func):
     def wrapper(*args):
         out_name = "./log/output"+datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") + ".log"
-        f=open(out_name,"a",encoding="utf-8")
-        out=func(args[0],args[1])
+        f = open(out_name, "a", encoding="utf-8")
+        out = func(args[0], args[1])
         f.write(f"bot_in:{args[1]}\nbot_out: {out}\n")
         return out
     return wrapper
+
 
 class Key:
     def __init__(self, word, weight, decomps):
@@ -59,13 +61,54 @@ class Decomp:
         return self.__str__()
 
 
+class elizaEncoder(json.JSONEncoder):  # JSON编码器
+
+    def decomp_encode(self, obj: Decomp):
+        decomp_json = {
+            "parts": obj.parts,
+            "reasmbs": obj.reasmbs,
+        }
+        return decomp_json
+
+    def default(self, obj):
+        if isinstance(obj, Key):
+            jsontext = {"__class__": "key",
+                        "word": obj.word,
+                        "weight": obj.weight,
+                        "decomps": [self.decomp_encode(i) for i in obj.decomps],
+                        }
+            return jsontext
+        else:
+            return json.JSONEncoder.default(obj)
+
+
+def elizaDecoder(obj):  # JSON解码器
+    if "__class__" in obj:
+        if obj["__class__"] == "key":
+            key = obj
+            word = key["word"]
+            weight = key["weight"]
+            decomps = key["decomps"]
+            key = Key(word, weight, [])
+            for decomp in decomps:
+                save = False
+                if decomp["parts"][0] == '$':
+                    save = True
+                    decomp["parts"] = decomp["parts"][1:]
+                decomp = Decomp(decomp["parts"], save, decomp["reasmbs"])
+                key.decomps.append(decomp)
+            return key
+    else:
+        return obj
+
+
 class Eliza:
     def __init__(self):
-        self.initials = []
-        self.finals = []
-        self.quits = []
-        self.pres = {}
-        self.posts = {}
+        self.initials = []  # 开始语
+        self.finals = []  # 结束语
+        self.quits = []  # 退出触发语
+        self.pres = {}  # 统一用词表
+        self.posts = {}  # 人称转换
         self.synons = {}
         self.keys = {}
         self.memory = []
@@ -79,8 +122,8 @@ class Eliza:
             for line in file:
                 if not line.strip():
                     continue
-                if "#" in line: # 注释
-                    line=line[:line.index("#")]
+                if "#" in line:  # 注释
+                    line = line[:line.index("#")]
                 tag, content = [part.strip() for part in line.split(':')]
                 if tag == 'initial':  # 开始语
                     self.initials.append(content)
@@ -91,7 +134,7 @@ class Eliza:
                 elif tag == 'pre':  # 同义词
                     parts = content.split(' ')
                     self.pres[parts[0]] = parts[1:]
-                elif tag == 'post': # 人称转换
+                elif tag == 'post':  # 人称转换
                     parts = content.split(' ')
                     self.posts[parts[0]] = parts[1:]
                 elif tag == 'synon':
@@ -120,10 +163,25 @@ class Eliza:
                     parts = content.split(' ')
                     self.sym_ch_en[parts[0]] = parts[1]
 
+    def load_json(self, *paths):  # 加载JSON规则
+        for path in paths:
+            file = json.load(open(path, 'r', encoding='utf-8'),
+                             object_hook=elizaDecoder)
+            self.initials.extend(file['initials'])
+            self.finals.extend(file['finals'])
+            self.quits.extend(file['quits'])
+            self.pres.update(file['pres'])
+            self.posts.update(file['posts'])
+            self.synons.update(file['synons'])
+            self.keys.update(file['keys'])
+            self.symbol.extend(file['symbol'])
+            self.sym_ch_en.update(file['sym_ch_en'])
+
     def _match_decomp_r(self, parts, words, results):
-        if not parts and not words: #全为空是返回 True
+        if not parts and not words:  # 全为空是返回 True
             return True
-        if not parts or (not words and parts != ['*']): # parts为空或 words为空,parts!=*是返回 False
+        # parts为空或 words为空,parts!=*是返回 False
+        if not parts or (not words and parts != ['*']):
             return False
         if parts[0] == '*':
             for index in range(len(words), -1, -1):
@@ -132,7 +190,7 @@ class Eliza:
                     return True
                 results.pop()
             return False
-        elif parts[0].startswith('@'):
+        elif parts[0].startswith('@'):  # 原来的规则中就没有符合的
             root = parts[0][1:]
             if not root in self.synons:
                 raise ValueError("Unknown synonym root {}".format(root))
@@ -151,11 +209,12 @@ class Eliza:
             return results
         return None
 
-    def _next_reasmb(self, decomp): # 从回复中选择一条输出
-        index = decomp.next_reasmb_index
+    def _next_reasmb(self, decomp):  # 从回复中选择一条输出
+        """index = decomp.next_reasmb_index
         result = decomp.reasmbs[index % len(decomp.reasmbs)]
         decomp.next_reasmb_index = index + 1
-        return result
+        return result"""
+        return random.choice(decomp.reasmbs)
 
     def _reassemble(self, reasmb, results):
         output = []
@@ -163,13 +222,13 @@ class Eliza:
             if not reword:
                 continue
             if reword[0] == '(' and reword[-1] == ')':
-                index = int(reword[1:-1]) # 括号内内容
-                if index < 1 or index > len(results): # 无效符号
+                index = int(reword[1:-1])  # 括号内内容
+                if index < 1 or index > len(results):  # 无效符号
                     raise ValueError("Invalid result index {}".format(index))
-                insert = results[index - 1] # 从列表取关键语句
+                insert = results[index - 1]  # 从列表取关键语句
                 for punct in [',', '.', ';']:
                     if punct in insert:
-                        insert = insert[:insert.index(punct)] # 提取符号前的第一段内容
+                        insert = insert[:insert.index(punct)]  # 提取符号前的第一段内容
                 output.extend(insert)
             else:
                 output.append(reword)
@@ -190,13 +249,14 @@ class Eliza:
     def _match_key(self, words, key):
         # words: 输入, key: 关键词规则
         for decomp in key.decomps:
-            results = self._match_decomp(decomp.parts, words) #提取信息
+            results = self._match_decomp(decomp.parts, words)  # 提取信息
             if results is None:
                 log.debug('Decomp did not match 无返回: %s', decomp.parts)
                 continue
             log.info('Decomp matched 被匹配的返回: %s', decomp.parts)
             log.info('Decomp results 匹配结果: %s', results)
-            results = [self._sub(words, self.posts) for words in results] #人称转换
+            results = [self._sub(words, self.posts)
+                       for words in results]  # 人称转换
             log.info('Decomp results after posts 转换后结果: %s', results)
             reasmb = self._next_reasmb(decomp)
             log.info('Using reassembly 回复语句: %s', reasmb)
@@ -208,7 +268,7 @@ class Eliza:
                 return self._match_key(words, self.keys[goto_key])
             output = self._reassemble(reasmb, results)
             if decomp.save:
-                self.memory.append(output) # 保存到记忆
+                self.memory.append(output)  # 保存到记忆
                 log.info('Saved to memory 记忆信息添加: %s', output)
                 continue
             return output
@@ -237,13 +297,13 @@ class Eliza:
         log.info('Input 输入: %s', words)
 
         words = self._sub(words, self.pres)  # 将 words 内的单词转化为统一的单词
-        log.debug('After pre-substitution 统一用词: %s', words)
+        log.info('After pre-substitution 统一用词: %s', words)
 
         keys = [self.keys[w.lower()] for w in words if w.lower()
                 in self.keys]  # 在keys中匹配words中的单词
         keys = sorted(keys, key=lambda k: -k.weight)  # 排序
         log.info('Sorted keys 被匹配的关键词: %s', [
-                  (k.word, k.weight) for k in keys])
+            (k.word, k.weight) for k in keys])
 
         output = None
 
@@ -251,18 +311,18 @@ class Eliza:
             output = self._match_key(words, key)
             if output:
                 log.debug('Output from key 从关键词获取输出: %s', output)
-                break # 避免多个关键词出现导致输出混乱
+                break  # 避免多个关键词出现导致输出混乱
         if not output:
-            if self.memory: # 当记忆不为空时
-                index = random.randrange(len(self.memory)) # 从记忆中随机选择一条输出并删除
+            if self.memory:  # 当记忆不为空时
+                index = random.randrange(len(self.memory))  # 从记忆中随机选择一条输出并删除
                 output = self.memory.pop(index)
                 log.debug('Output from memory: %s', output)
             else:
                 output = self._next_reasmb(self.keys['xnone'].decomps[0])
                 log.debug('Output from xnone: %s', output)
 
-        return " ".join(output) #文本处理
-    
+        return " ".join(output)  # 文本处理
+
     # 开始语与结束语的随机输出
     def initial(self):
         return random.choice(self.initials)
@@ -287,10 +347,12 @@ class Eliza:
 
 def main():
     eliza = Eliza()
-    eliza.load('doctor.txt')
+
+    eliza.load_json("doctor.json")
+    # eliza.load('doctor.txt')
     eliza.run()
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     main()
