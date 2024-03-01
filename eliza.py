@@ -109,13 +109,15 @@ class Eliza:
         self.quits = []  # 退出触发语
         self.pres = {}  # 统一用词表
         self.posts = {}  # 人称转换
-        self.synons = {}
-        self.keys = {}
-        self.memory = []
-        self.symbol = []
-        self.sym_ch_en = {}
+        self.synons = {} # 无有效引用
+        self.keys = {} # 关键词
+        self.memory = [] # 记忆信息列表
+        self.symbol = [] # 符号列表
+        self.sym_ch_en = {} # 中文符号转换
+        self.input_data_list=[] # 加载数据列表
 
     def load(self, path):
+        self.input_data_list.append(os.path.abspath(path))
         key = None
         decomp = None
         with open(path, encoding="utf-8") as file:
@@ -165,6 +167,7 @@ class Eliza:
 
     def load_json(self, *paths):  # 加载JSON规则
         for path in paths:
+            self.input_data_list.append(os.path.abspath(path))
             file = json.load(open(path, 'r', encoding='utf-8'),
                              object_hook=elizaDecoder)
             self.initials.extend(file['initials'])
