@@ -9,7 +9,7 @@ ELIZA 的 Python 实现. ELIZA 是基于规则的聊天机器人, 用于扮演�
 
 从文件运行:
 
-```
+```Terminal
 $ python eliza.py
 How do you do.  Please tell me your problem.
 > I would like to have a chat bot.
@@ -38,10 +38,4 @@ print(eliza.final())
 
 ## 说明
 
-源代码来自[github:wadetb/eliza](https://github.com/wadetb/eliza)
-
-### 参考
-
-eliza1目录:[github:wadetb/eliza](https://github.com/wadetb/eliza)
-
-eliza2目录:[github:jezhiggins/eliza.py](https://github.com/jezhiggins/eliza.py)
+源代码参考[github:wadetb/eliza](https://github.com/wadetb/eliza)
