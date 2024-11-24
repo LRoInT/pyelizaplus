@@ -4,7 +4,7 @@ import sys
 eliza_obj = eliza.Eliza()
 
 # 获取所有规则
-eliza_obj.load("doctor.txt")
+eliza_obj.load_text("doctor.txt")
 argv=sys.argv[1:]
 f=argv[0]
 output=[]

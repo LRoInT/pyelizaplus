@@ -70,7 +70,7 @@ class ElizaTest(unittest.TestCase):
 
     def test_syn_1(self):
         el = eliza.Eliza()
-        el.load('doctor.txt')
+        el.load_text('doctor.txt')
         self.assertEqual([['am']], el._match_decomp(['@be'], ['am']))
         self.assertEqual([['am']], el._match_decomp(['@be', 'a'], ['am', 'a']))
         self.assertEqual([['am']],
@@ -78,19 +78,19 @@ class ElizaTest(unittest.TestCase):
 
     def test_syn_2(self):
         el = eliza.Eliza()
-        el.load('doctor.txt')
+        el.load_text('doctor.txt')
         self.assertIsNone(el._match_decomp(['@be'], ['a']))
 
     def test_syn_3(self):
         el = eliza.Eliza()
-        el.load('doctor.txt')
+        el.load_text('doctor.txt')
         self.assertIsNotNone(
             el._match_decomp(['*', 'i', 'am', '@sad', '*'],
                              ['its', 'true', 'i', 'am', 'unhappy']))
 
     def test_response_1(self):
         el = eliza.Eliza()
-        el.load('doctor.txt')
+        el.load_text('doctor.txt')
         self.assertEqual('In what way ?', el.respond('Men are all alike.'))
         self.assertEqual(
             'Can you think of a specific example ?',
@@ -138,7 +138,7 @@ class ElizaTest(unittest.TestCase):
 
     def test_response_2(self):
         el = eliza.Eliza()
-        el.load('doctor.txt')
+        el.load_text('doctor.txt')
         self.assertEqual(el.initial(), 'How do you do.  Please tell me your problem.')
         self.assertIn(el.respond('Hello'), [
             'How do you do. Please state your problem.',

@@ -109,14 +109,15 @@ class Eliza:
         self.quits = []  # 退出触发语
         self.pres = {}  # 统一用词表
         self.posts = {}  # 人称转换
-        self.synons = {} # 无有效引用
-        self.keys = {} # 关键词
-        self.memory = [] # 记忆信息列表
-        self.symbol = [] # 符号列表
-        self.sym_ch_en = {} # 中文符号转换
-        self.input_data_list=[] # 加载数据列表
+        self.synons = {}  # 用法未知, 无有效引用
+        self.keys = {}  # 关键词
+        self.memory = []  # 记忆信息列表
+        self.symbol = []  # 符号列表
+        self.sym_ch_en = {}  # 中文符号转换
+        self.input_data_list = []  # 加载数据列表
 
-    def load(self, path):
+    def load_text(self, path):
+        # 加载文本规则
         self.input_data_list.append(os.path.abspath(path))
         key = None
         decomp = None
@@ -165,7 +166,8 @@ class Eliza:
                     parts = content.split(' ')
                     self.sym_ch_en[parts[0]] = parts[1]
 
-    def load_json(self, *paths):  # 加载JSON规则
+    def load_json(self, *paths):
+        # 加载JSON规则
         for path in paths:
             self.input_data_list.append(os.path.abspath(path))
             file = json.load(open(path, 'r', encoding='utf-8'),
@@ -183,7 +185,7 @@ class Eliza:
     def _match_decomp_r(self, parts, words, results):
         if not parts and not words:  # 全为空是返回 True
             return True
-        # parts为空或 words为空,parts!=*是返回 False
+        # parts为空或 words为空, parts!=*是返回 False
         if not parts or (not words and parts != ['*']):
             return False
         if parts[0] == '*':
@@ -193,7 +195,7 @@ class Eliza:
                     return True
                 results.pop()
             return False
-        elif parts[0].startswith('@'):  # 原来的规则中就没有符合的
+        elif parts[0].startswith('@'):  # 用法未知, 无有效规则
             root = parts[0][1:]
             if not root in self.synons:
                 raise ValueError("Unknown synonym root {}".format(root))
@@ -240,14 +242,15 @@ class Eliza:
     def _sub(self, words, sub):
         # 输入一个可迭代对象 words , 遍历 words
         # 在 sub 中搜索键 word 完成转换, 如果没有表明不需要转换
-        output = []
+        """output = []
         for word in words:
             word_lower = word.lower()  # 小写
             if word_lower in sub:
                 output.extend(sub[word_lower])  # 匹配
             else:
                 output.append(word)  # 添加本身
-        return output
+        return output"""
+        return [sub[wl] if (wl := w.lower()) in sub else w for w in words]
 
     def _match_key(self, words, key):
         # words: 输入, key: 关键词规则
@@ -350,7 +353,6 @@ class Eliza:
 
 def main():
     eliza = Eliza()
-
     eliza.load_json("doctor.json")
     # eliza.load('doctor.txt')
     eliza.run()
